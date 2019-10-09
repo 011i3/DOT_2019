@@ -1,0 +1,29 @@
+---
+- hosts: 127.0.0.1
+  roles:
+   # lookup galaxy.ansible for the various roles you can pass
+  tasks:
+
+  - name: Install python3 dependencies
+    yum: "name={{ item }} state=installed"
+    become: yes
+    with_items:
+      - centos-release-sc1
+      - yum-utils
+      - git
+      - curl
+      - wget
+      - vim
+      - maven
+
+  - name: Install python36u
+    shell: sudo yum install-y python36u python36u-libs python36u-devel pyhton36u-pip
+    become: yes
+
+  - name: Install awscli
+    shell: pip3.6 install awscli --upgrade --user
+    become: yes
+
+  - name: Install boto3
+    shell: pip3.6 install boto3 botocore --upgrade --user
+    become: yes

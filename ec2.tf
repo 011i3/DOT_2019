@@ -7,6 +7,10 @@ resource "aws_instance" "app1" {
     ami = "${lookup(var.AMI, var.AWS_REGION)}"
     instance_type = "t2.micro" #free tier instance type used - t2.medium for DevMinds Training
 
+	root_block_device {
+	delete_on_termination=true
+	}
+
 	# VPC
     subnet_id = "${aws_subnet.dev-subnet-public-1.id}"
 
@@ -15,6 +19,15 @@ resource "aws_instance" "app1" {
 
 	#Public key
     key_name = "${aws_key_pair.ansible.id}"
+	
+    connection {
+        type        = "ssh"
+        user        = "${var.EC2_USER}"
+        private_key = "${file("${var.PRIVATE_KEY_PATH}")}" #ssh user public_key
+        timeout     = "3m"
+        host        = "${self.public_ip}" #returns public_ip of instance
+        #host        = "${self.private_ip}"
+    }
 
 	# Shopizer prerequisite installs
     provisioner "file" {
@@ -24,17 +37,7 @@ resource "aws_instance" "app1" {
     provisioner "remote-exec" {
         inline = [
              "chmod +x /tmp/prerequisites.sh",
-             "sudo /tmp/prerequisites.sh"
+	     "/tmp/prerequisites.sh"
         ]
     }
-
-connection {
-    type        = "ssh"
-    user        = "${var.EC2_USER}"
-    private_key = "${file("${var.PRIVATE_KEY_PATH}")}" #ssh user public_key
-    timeout     = "3m"
-    host        = "${self.public_ip}" #returns public_ip of instance
-    #host        = "${self.private_ip}"
-  }
-
 }
